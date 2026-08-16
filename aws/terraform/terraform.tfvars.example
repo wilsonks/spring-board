@@ -1,0 +1,21 @@
+aws_region = "us-east-1"
+
+environment = "production"
+
+bucket_name = "springboard-talent-frontend"
+
+domain_name = "springboard-talent.com"
+
+api_domain = "api.springboard-talent.com"
+
+# Obtain from AWS Certificate Manager (must be in us-east-1 for CloudFront)
+certificate_arn = "arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID"
+
+enable_versioning = true
+
+tags = {
+  Project     = "Springboard Talent"
+  Environment = "production"
+  Team        = "DevOps"
+  ManagedBy   = "Terraform"
+}
