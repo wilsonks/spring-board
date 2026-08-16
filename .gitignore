@@ -1,0 +1,19 @@
+# Terraform
+aws/terraform/.terraform/
+aws/terraform/.terraform.lock.hcl
+aws/terraform/terraform.tfstate
+aws/terraform/terraform.tfstate.backup
+aws/terraform/terraform.tfvars
+
+# AWS environment secrets
+aws/.env.production
+frontend/.env.production.local
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db

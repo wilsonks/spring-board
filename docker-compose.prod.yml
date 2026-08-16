@@ -1,0 +1,15 @@
+version: '3.8'
+
+# Production Docker Compose — backend only.
+# The React frontend is served globally via AWS S3 + CloudFront.
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
