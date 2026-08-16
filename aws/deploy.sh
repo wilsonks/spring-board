@@ -14,6 +14,12 @@ info()    { echo -e "${GREEN}[INFO]${NC}  $*"; }
 warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 
+# ── Global paths (set once, used by all functions) ─────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+FRONTEND_DIR="${REPO_ROOT}/frontend"
+DIST_DIR="${FRONTEND_DIR}/dist"
+
 # ── Prerequisites ──────────────────────────────────────────────────────────────
 check_prerequisites() {
   info "Checking prerequisites..."
@@ -38,7 +44,6 @@ check_prerequisites() {
 
 # ── Load environment variables ─────────────────────────────────────────────────
 load_env() {
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   ENV_FILE="${SCRIPT_DIR}/.env.production"
 
   if [[ -f "${ENV_FILE}" ]]; then
@@ -58,16 +63,12 @@ load_env() {
 
 # ── Build frontend ─────────────────────────────────────────────────────────────
 build_frontend() {
-  REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-  FRONTEND_DIR="${REPO_ROOT}/frontend"
-
   info "Installing Node dependencies..."
   (cd "${FRONTEND_DIR}" && npm ci)
 
   info "Building React application..."
   (cd "${FRONTEND_DIR}" && npm run build)
 
-  DIST_DIR="${FRONTEND_DIR}/dist"
   if [[ ! -d "${DIST_DIR}" ]]; then
     error "Build output not found at ${DIST_DIR}"
     exit 1
@@ -78,8 +79,6 @@ build_frontend() {
 
 # ── Upload to S3 ───────────────────────────────────────────────────────────────
 upload_to_s3() {
-  DIST_DIR="${REPO_ROOT}/frontend/dist"
-
   info "Uploading static assets (long-term cache)..."
   aws s3 sync "${DIST_DIR}/static" "s3://${S3_BUCKET}/static" \
     --region "${AWS_REGION}" \

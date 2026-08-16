@@ -60,7 +60,7 @@ resource "aws_cloudfront_distribution" "frontend" {
     viewer_protocol_policy = "redirect-to-https"
   }
 
-  # Cache behavior for API calls
+  # Cache behavior for API calls — no caching, full header/cookie forwarding
   ordered_cache_behavior {
     path_pattern           = "/api/*"
     allowed_methods        = ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
@@ -68,7 +68,12 @@ resource "aws_cloudfront_distribution" "frontend" {
     target_origin_id       = "api-backend"
     compress               = true
     viewer_protocol_policy = "https-only"
-    cache_policy_id        = aws_cloudfront_cache_policy.api.id
+
+    # AWS-managed CachingDisabled policy — guaranteed no caching
+    cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+
+    # Forward Authorization header and all query strings/cookies to the API origin
+    origin_request_policy_id = aws_cloudfront_origin_request_policy.api.id
   }
 
   # HTTPS certificate
@@ -166,33 +171,24 @@ resource "aws_cloudfront_cache_policy" "assets" {
   }
 }
 
-# Cache policy for API (no caching, pass-through)
-resource "aws_cloudfront_cache_policy" "api" {
-  name        = "api-no-cache-policy"
-  description = "Cache policy for API calls - no caching"
+# Origin request policy for API — forwards auth headers, cookies, and query strings
+resource "aws_cloudfront_origin_request_policy" "api" {
+  name    = "api-origin-request-policy"
+  comment = "Forward auth headers and cookies to the API backend"
 
-  default_ttl = 0
-  max_ttl     = 0
-  min_ttl     = 0
+  cookies_config {
+    cookie_behavior = "all"
+  }
 
-  parameters_in_cache_key_and_forwarded_to_origin {
-    enable_accept_encoding_gzip   = true
-    enable_accept_encoding_brotli = true
-
-    query_strings_config {
-      query_string_behavior = "all"
+  headers_config {
+    header_behavior = "whitelist"
+    headers {
+      items = ["Authorization", "Origin", "Content-Type", "Accept", "CloudFront-Viewer-Country"]
     }
+  }
 
-    headers_config {
-      header_behavior = "whitelist"
-      headers {
-        items = ["Authorization", "CloudFront-Viewer-Country", "Origin", "Content-Type"]
-      }
-    }
-
-    cookies_config {
-      cookie_behavior = "all"
-    }
+  query_strings_config {
+    query_string_behavior = "all"
   }
 }
 
